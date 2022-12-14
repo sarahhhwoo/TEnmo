@@ -49,6 +49,8 @@ public class JdbcAccountDao implements AccountDao{
                 "FROM account " +
                 "WHERE account_id =?;";
         double balance = -1;
+        //TODO: check!!
+
         try {
             balance = this.jdbcTemplate.queryForObject(sql, double.class, accountId);
         }  catch (NullPointerException e) {
@@ -73,6 +75,21 @@ public class JdbcAccountDao implements AccountDao{
                 "WHERE account_id =  ?;";
         this.jdbcTemplate.update(sql, amountToSubtract, accountId);
         return this.findAccountByAccountId(accountId);
+    }
+
+    @Override
+    public int getAccountIdByUserId(int userId) {
+        String sql = "SELECT account_id " +
+                "FROM account " +
+                "WHERE user_id = ?;";
+        int accountId = -1;
+        //TODO: check!!
+        try {
+            accountId = this.jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        } catch (NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+        return accountId;
     }
 
 

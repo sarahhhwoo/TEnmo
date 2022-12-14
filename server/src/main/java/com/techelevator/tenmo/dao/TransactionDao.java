@@ -6,17 +6,17 @@ import java.util.List;
 
 public interface TransactionDao {
 
-    List<Transaction> listAllTransactionsByUser();
+    List<Transaction> listAllTransactionsByUser(int userId);
 
-    Transaction getTransactionByID();
+    Transaction getTransactionByID(int transactionId);
 
-    String getTransactionStatus();
+    String getTransactionStatus(int transactionId);
 
-    Transaction updateTransaction();
+    Transaction updateTransaction(int transactionID, Transaction transaction);
 
-    List<Transaction> listAllPendingTransactions();
+    List<Transaction> listAllPendingTransactions(int accountId);
 
     //double getMoneySentByID();
 
-    boolean create();
+    boolean create(Transaction transaction);
 }

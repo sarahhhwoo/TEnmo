@@ -15,6 +15,6 @@ public interface AccountDao {
 
     Account subtractFromAccountBalance(int accountId, double amountToSubtract);
 
-
+    int getAccountIdByUserId(int userId);
 
 }
