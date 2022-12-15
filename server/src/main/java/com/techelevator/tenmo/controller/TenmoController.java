@@ -67,6 +67,7 @@ public class TenmoController {
    @ResponseStatus(HttpStatus.CREATED)
    @RequestMapping(path = "/transactions", method = RequestMethod.POST)
     public int createTransaction(@Valid @RequestBody Transaction transaction, Principal principal){
+        transaction.setStatus("Approved");
        int senderAccountId = getAccountIdFromUsername(principal.getName());
         if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkNotMoreThanBalance(transaction) && checkTransfer.canEditTransactionInfo(senderAccountId, transaction) && checkTransfer.checkNotSelf(transaction)){
              return this.transactionDao.create(transaction);

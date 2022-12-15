@@ -16,8 +16,6 @@ public interface TransactionDao {
 
     List<Transaction> listAllPendingTransactions(int accountId);
 
-    //double getMoneySentByID();
-
     int create(Transaction transaction);
 
     void transferFunds(Transaction transaction);
