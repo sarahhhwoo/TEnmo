@@ -61,6 +61,14 @@ public class CheckTransfer implements Check{
     }
 
     @Override
+    public boolean checkIsReceiver(int accountId, Transaction transaction) {
+        if(accountId == transaction.getReceiverAccountId()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean checkValidAccountId(int accountId) {
         String sql = "SELECT user_id " +
                 "FROM account " +

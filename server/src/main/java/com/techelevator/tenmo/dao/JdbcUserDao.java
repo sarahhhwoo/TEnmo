@@ -40,6 +40,7 @@ public class JdbcUserDao implements UserDao {
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, name);
         while(results.next()) {
            String username = results.getString("username");
+
             users.add(username);
         }
         return users;

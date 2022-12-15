@@ -2,10 +2,12 @@ package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Transaction;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +67,9 @@ public class JdbcTransactionDao implements TransactionDao{
                 "WHERE transaction_id = ?;";
         this.jdbcTemplate.update(sql, transaction.getReceiverAccountId(), transaction.getSenderAccountId(),
                 transaction.getMoneySent(), transaction.getStatus(), transactionID);
+        if (transaction.getStatus().equalsIgnoreCase("Approved")) {
+            transferFunds(transaction);
+        }
         return this.getTransactionByID(transaction.getTransactionId());
     }
 
@@ -75,7 +80,7 @@ public class JdbcTransactionDao implements TransactionDao{
         String sql = "SELECT transaction_id, receiver_account_id, sender_account_id, money_sent, status " +
                 "FROM transaction " +
                 "WHERE status ILIKE ?;";
-        SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, pending, accountId);
+        SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, pending);
         while (rowSet.next()){
             Transaction transaction =  mapRowToTransaction(rowSet);
             if (transaction.getReceiverAccountId()==accountId || transaction.getSenderAccountId()==accountId){
@@ -86,21 +91,23 @@ public class JdbcTransactionDao implements TransactionDao{
     }
 
     @Override
-    public boolean create(Transaction transaction) {
+    public int create(Transaction transaction) {
         String sql = "INSERT INTO transaction " +
                 "(receiver_account_id, sender_account_id, money_sent, status) " +
                 "VALUES " +
-                "(?, ?, ?, ?)";
+                "(?, ?, ?, ?)" +
+                "RETURNING transaction_id";
+        int newID;
         try {
-            this.jdbcTemplate.update(sql, transaction.getReceiverAccountId(), transaction.getSenderAccountId(),
+            newID = this.jdbcTemplate.queryForObject(sql, Integer.class, transaction.getReceiverAccountId(), transaction.getSenderAccountId(),
                     transaction.getMoneySent(), transaction.getStatus());
         }catch (DataAccessException e){
-            return false;
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction not created.");
         }
         if (transaction.getStatus().equalsIgnoreCase("Approved")) {
             transferFunds(transaction);
         }
-        return true;
+        return newID;
     }
 
     @Override

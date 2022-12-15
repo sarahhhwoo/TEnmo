@@ -14,6 +14,8 @@ public interface Check {
 
     boolean canEditTransactionInfo(int accountId, Transaction transaction);
 
+    boolean checkIsReceiver(int accountId, Transaction transaction);
+
     boolean checkValidAccountId(int accountId);
 
     boolean checkValidTransactionId(int transactionId);

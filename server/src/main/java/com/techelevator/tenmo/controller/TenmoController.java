@@ -7,6 +7,7 @@ import com.techelevator.tenmo.dao.UserDao;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transaction;
 import com.techelevator.tenmo.model.User;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -56,7 +57,7 @@ public class TenmoController {
     }
 
    @RequestMapping(path = "/transactions/{id}", method = RequestMethod.GET)
-   public Transaction transactionBYID(@PathVariable int id){
+   public Transaction transactionById(@PathVariable int id){
         if (checkTransfer.checkValidTransactionId(id)){
             return transactionDao.getTransactionByID(id);
         }
@@ -65,10 +66,10 @@ public class TenmoController {
 
    @ResponseStatus(HttpStatus.CREATED)
    @RequestMapping(path = "/transactions", method = RequestMethod.POST)
-    public void createTransaction(@Valid @RequestBody Transaction transaction, Principal principal){
+    public int createTransaction(@Valid @RequestBody Transaction transaction, Principal principal){
        int senderAccountId = getAccountIdFromUsername(principal.getName());
         if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkNotMoreThanBalance(transaction) && checkTransfer.canEditTransactionInfo(senderAccountId, transaction) && checkTransfer.checkNotSelf(transaction)){
-             this.transactionDao.create(transaction);
+             return this.transactionDao.create(transaction);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to create transaction.");
         }
@@ -82,8 +83,7 @@ public class TenmoController {
             this.transactionDao.updateTransaction(id, transaction);
         } else if(!checkTransfer.checkWasPending(id)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction must be pending to update.");
-        }
-        else {
+        } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction ID: " + id + " was not found " +
                     "or invalid transaction object entered.");
         }
@@ -98,11 +98,61 @@ public class TenmoController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user ID");
    }
 
-   @RequestMapping(path = "/users", method = RequestMethod.GET)
-    public List<String> listAllUsernames(Principal principal) {
+   @RequestMapping(path = "/transactions/users", method = RequestMethod.GET)
+    public List<Integer> listAllUsernames(Principal principal) {
         String username = principal.getName();
-         return this.userDao.findAll(username);
+        List<String> listUsernames =  this.userDao.findAll(username);
+        List<Integer> listAccountId = new ArrayList<>();
+        for (int i = 0; i < listUsernames.size(); i +=1){
+            listAccountId.add(getAccountIdFromUsername(listUsernames.get(i)));
+        }
+        return listAccountId;
    }
+
+   @RequestMapping(path = "/request", method = RequestMethod.POST)
+   public int requestTransaction(@Valid @RequestBody Transaction transaction, Principal principal){
+        transaction.setStatus("Pending");
+       int receiverAccountId = getAccountIdFromUsername(principal.getName());
+       if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkIsReceiver(receiverAccountId, transaction) && checkTransfer.checkNotSelf(transaction)){
+          return this.transactionDao.create(transaction);
+       } else {
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to create request.");
+       }
+   }
+
+   @RequestMapping(path = "/transactions/{id}/approve", method = RequestMethod.PUT)
+   public void approveTransaction(@PathVariable int id, Principal principal){
+        Transaction transaction = this.transactionDao.getTransactionByID(id);
+        transaction.setStatus("Approved");
+       int senderId = getAccountIdFromUsername(principal.getName());
+       if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkNotMoreThanBalance(transaction) && checkTransfer.checkValidTransactionId(id) && checkTransfer.checkWasPending(id) && checkTransfer.canEditTransactionInfo(senderId, transaction) && checkTransfer.checkNotSelf(transaction)){
+           this.transactionDao.updateTransaction(id, transaction);
+       } else if(!checkTransfer.checkWasPending(id)) {
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction must be pending to update.");
+       } else {
+           throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction ID: " + id + " was not found " +
+                   "or invalid transaction object entered.");
+       }
+
+
+   }
+
+   @RequestMapping(path = "/transactions/{id}/reject", method = RequestMethod.PUT)
+   public void rejectTransaction(@PathVariable int id, Principal principal){
+       Transaction transaction = this.transactionDao.getTransactionByID(id);
+       transaction.setStatus("Rejected");
+       int senderId = getAccountIdFromUsername(principal.getName());
+       if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkNotMoreThanBalance(transaction) && checkTransfer.checkValidTransactionId(id) && checkTransfer.checkWasPending(id) && checkTransfer.canEditTransactionInfo(senderId, transaction) && checkTransfer.checkNotSelf(transaction)){
+           this.transactionDao.updateTransaction(id, transaction);
+       } else if(!checkTransfer.checkWasPending(id)) {
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction must be pending to update.");
+       } else {
+           throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction ID: " + id + " was not found " +
+                   "or invalid transaction object entered.");
+       }
+
+   }
+
 
    private int getAccountIdFromUsername(String name)  {
        int senderId = userDao.findIdByUsername(name);
