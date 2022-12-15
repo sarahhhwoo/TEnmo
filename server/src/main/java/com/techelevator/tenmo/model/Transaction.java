@@ -6,8 +6,8 @@ import javax.validation.constraints.Positive;
 public class Transaction {
 
     private int transactionId;
-    private int receiverAccountId;
-    private int senderAccountId;
+    private String receiverUsername;
+    private String senderUsername;
     @DecimalMin(value = "0.01", message = "Must send more than 0.00")
     private double moneySent;
     private String status;
@@ -16,10 +16,10 @@ public class Transaction {
 
     }
 
-    public Transaction(int transactionId, int receiverAccountId, int senderAccountId, double moneySent, String status) {
+    public Transaction(int transactionId, String receiverUsername, String senderUsername ,double moneySent, String status) {
         this.transactionId = transactionId;
-        this.receiverAccountId = receiverAccountId;
-        this.senderAccountId = senderAccountId;
+        this.receiverUsername = receiverUsername;
+        this.senderUsername = senderUsername;
         this.moneySent = moneySent;
         this.status = status;
     }
@@ -32,20 +32,20 @@ public class Transaction {
         this.transactionId = transactionId;
     }
 
-    public int getReceiverAccountId() {
-        return this.receiverAccountId;
+    public String getReceiverUsername() {
+        return this.receiverUsername;
     }
 
-    public void setReceiverAccountId(int receiverAccountId) {
-        this.receiverAccountId = receiverAccountId;
+    public void setReceiverUsername(String receiverUsername) {
+        this.receiverUsername = receiverUsername;
     }
 
-    public int getSenderAccountId() {
-        return this.senderAccountId;
+    public String getSenderUsername() {
+        return this.senderUsername;
     }
 
-    public void setSenderAccountId(int senderAccountId) {
-        this.senderAccountId = senderAccountId;
+    public void setSenderUsername(String senderUsername) {
+        this.senderUsername = senderUsername;
     }
 
     public double getMoneySent() {
@@ -63,4 +63,6 @@ public class Transaction {
     public void setStatus(String status) {
         this.status = status;
     }
+
+
 }

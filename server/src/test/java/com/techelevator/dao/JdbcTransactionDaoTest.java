@@ -18,8 +18,8 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
     private JdbcTransactionDao sut;
     private JdbcAccountDao accDao;
 
-    private static final Transaction TRANSACTION_1 = new Transaction(3001, 2002, 2001, 500, "Approved");
-    private static final Transaction TRANSACTION_2 = new Transaction(3002, 2001, 2002, 300, "Pending");
+    private static final Transaction TRANSACTION_1 = new Transaction(3001, "user", "bob", 500, "Approved");
+    private static final Transaction TRANSACTION_2 = new Transaction(3002, "bob", "user", 300, "Pending");
 
     @Before
     public void setup() {
@@ -81,7 +81,7 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
         expectedList.add(TRANSACTION_2);
 
         // Act
-        List<Transaction> actualList = sut. listAllPendingTransactions(2002);
+        List<Transaction> actualList = sut. listAllPendingTransactions("user");
 
         // Assert
         Assert.assertEquals(expectedList.size(), actualList.size());
@@ -92,8 +92,8 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
     public void create_returns_new_id() {
         // Arrange
         Transaction transaction = new Transaction();
-        transaction.setReceiverAccountId(2001);
-        transaction.setSenderAccountId(2002);
+        transaction.setReceiverUsername("bob");
+        transaction.setSenderUsername("user");
         transaction.setMoneySent(150);
         transaction.setStatus("Approved");
         int expected = 3003;
@@ -126,8 +126,8 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
 
     private void assertTransactionMatch(Transaction expected, Transaction actual){
         Assert.assertEquals(expected.getTransactionId(), actual.getTransactionId());
-        Assert.assertEquals(expected.getReceiverAccountId(), actual.getReceiverAccountId());
-        Assert.assertEquals(expected.getSenderAccountId(), actual.getSenderAccountId());
+            Assert.assertEquals(expected.getReceiverUsername(), actual.getReceiverUsername());
+        Assert.assertEquals(expected.getSenderUsername(), actual.getSenderUsername());
         Assert.assertEquals(expected.getMoneySent(), actual.getMoneySent(), 0.00);
         Assert.assertEquals(expected.getStatus(), actual.getStatus());
     }

@@ -22,12 +22,15 @@ public class JdbcTransactionDao implements TransactionDao{
     }
 
     @Override
-    public List<Transaction> listAllTransactionsByUser(int userId) {
+    public List<Transaction> listAllTransactionsByUser(int accountId) {
         List<Transaction> transactions = new ArrayList<>();
-       String sql = "SELECT transaction_id, receiver_account_id, sender_account_id, money_sent, status " +
+       String sql = "SELECT transaction_id, receiver_username, sender_username, money_sent, status " +
                "FROM transaction " +
-               "WHERE receiver_account_id = ? OR sender_account_id = ?;";
-        SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, userId, userId);
+               "JOIN tenmo_user ON transaction.receiver_username = tenmo_user.username OR " +
+               "transaction.sender_username = tenmo_user.username " +
+               "JOIN account on tenmo_user.user_id = account.user_id " +
+               "WHERE account.account_id = ?;";
+        SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, accountId);
         while (rowSet.next()){
             transactions.add(mapRowToTransaction(rowSet));
         }
@@ -36,7 +39,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public Transaction getTransactionByID(int transactionId) {
-        String sql = "SELECT transaction_id, receiver_account_id, sender_account_id, money_sent, status " +
+        String sql = "SELECT transaction_id, receiver_username, sender_username, money_sent, status " +
                 "FROM transaction " +
                 "WHERE transaction_id = ?;";
         SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, transactionId);
@@ -63,9 +66,9 @@ public class JdbcTransactionDao implements TransactionDao{
     public Transaction updateTransaction(int transactionID, Transaction transaction) {
         //check prior approval
         String sql = "UPDATE transaction " +
-                "SET receiver_account_id = ?, sender_account_id = ?, money_sent = ?, status = ? " +
+                "SET receiver_username = ?, sender_username = ?, money_sent = ?, status = ? " +
                 "WHERE transaction_id = ?;";
-        this.jdbcTemplate.update(sql, transaction.getReceiverAccountId(), transaction.getSenderAccountId(),
+        this.jdbcTemplate.update(sql, transaction.getReceiverUsername(), transaction.getSenderUsername(),
                 transaction.getMoneySent(), transaction.getStatus(), transactionID);
         if (transaction.getStatus().equalsIgnoreCase("Approved")) {
             transferFunds(transaction);
@@ -74,16 +77,16 @@ public class JdbcTransactionDao implements TransactionDao{
     }
 
     @Override
-    public List<Transaction> listAllPendingTransactions(int accountId) {
+    public List<Transaction> listAllPendingTransactions(String name) {
         List<Transaction> transactions = new ArrayList<>();
         String pending = "pending";
-        String sql = "SELECT transaction_id, receiver_account_id, sender_account_id, money_sent, status " +
+        String sql = "SELECT transaction_id, receiver_username, sender_username, money_sent, status " +
                 "FROM transaction " +
                 "WHERE status ILIKE ?;";
         SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, pending);
         while (rowSet.next()){
             Transaction transaction =  mapRowToTransaction(rowSet);
-            if (transaction.getReceiverAccountId()==accountId || transaction.getSenderAccountId()==accountId){
+            if (transaction.getReceiverUsername().equalsIgnoreCase(name) || transaction.getSenderUsername().equalsIgnoreCase(name)){
                 transactions.add(transaction);
             }
         }
@@ -93,13 +96,13 @@ public class JdbcTransactionDao implements TransactionDao{
     @Override
     public int create(Transaction transaction) {
         String sql = "INSERT INTO transaction " +
-                "(receiver_account_id, sender_account_id, money_sent, status) " +
+                "(receiver_username, sender_username, money_sent, status) " +
                 "VALUES " +
                 "(?, ?, ?, ?)" +
                 "RETURNING transaction_id";
         int newID;
         try {
-            newID = this.jdbcTemplate.queryForObject(sql, Integer.class, transaction.getReceiverAccountId(), transaction.getSenderAccountId(),
+            newID = this.jdbcTemplate.queryForObject(sql, Integer.class, transaction.getReceiverUsername(), transaction.getSenderUsername(),
                     transaction.getMoneySent(), transaction.getStatus());
         }catch (DataAccessException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction not created.");
@@ -112,21 +115,44 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public void transferFunds(Transaction transaction) {
+        String selectSql1 = "Select user_id " +
+                "FROM tenmo_user " +
+                "JOIN transaction ON tenmo_user.username = transaction.sender_username " +
+                "WHERE sender_username = ? " +
+                "GROUP BY user_id;";
+        int senderId;
+        try {
+            senderId = this.jdbcTemplate.queryForObject(selectSql1, Integer.class, transaction.getSenderUsername());
+        } catch (NullPointerException e){
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to complete transfer of funds.");
+        }
+        String selectSql2 = "Select user_id " +
+                "FROM tenmo_user " +
+                "JOIN transaction ON tenmo_user.username = transaction.receiver_username " +
+                "WHERE receiver_username = ? " +
+                "GROUP BY user_id;";
+        int receiverId;
+        try {
+            receiverId = this.jdbcTemplate.queryForObject(selectSql2, Integer.class, transaction.getReceiverUsername());
+        } catch (NullPointerException e){
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to complete transfer of funds.");
+        }
+
         String sql1 = "UPDATE account " +
-                "SET balance = balance - ? " +
-                "WHERE account_id = ?;";
-        this.jdbcTemplate.update(sql1, transaction.getMoneySent(), transaction.getSenderAccountId());
+                "SET balance = account.balance - ? " +
+                "WHERE user_id = ?;";
+        this.jdbcTemplate.update(sql1, transaction.getMoneySent(), senderId);
         String sql2 = "UPDATE account " +
                 "SET balance = balance + ? " +
-                "WHERE account_id = ?;";
-        this.jdbcTemplate.update(sql2, transaction.getMoneySent(), transaction.getReceiverAccountId());
+                "WHERE user_id = ?;";
+        this.jdbcTemplate.update(sql2, transaction.getMoneySent(), receiverId);
     }
 
     private Transaction mapRowToTransaction(SqlRowSet rowSet){
         Transaction transaction = new Transaction();
         transaction.setTransactionId(rowSet.getInt("transaction_id"));
-        transaction.setReceiverAccountId(rowSet.getInt("receiver_account_id"));
-        transaction.setSenderAccountId(rowSet.getInt("sender_account_id"));
+        transaction.setReceiverUsername(rowSet.getString("receiver_username"));
+        transaction.setSenderUsername(rowSet.getString("sender_username"));
         transaction.setMoneySent(rowSet.getDouble("money_sent"));
         transaction.setStatus(rowSet.getString("status"));
         return transaction;

@@ -40,13 +40,13 @@ CREATE SEQUENCE seq_transaction_id
 
 CREATE TABLE transaction (
 	transaction_id int NOT NULL DEFAULT nextval('seq_transaction_id'),
-	receiver_account_id int NOT NULL,
-	sender_account_id int NOT NULL,
+	receiver_username varchar(100) NOT NULL,
+	sender_username varchar(100) NOT NULL,
 	money_sent decimal(13, 2) NOT NULL,
 	status varchar(50) NOT NULL,
 	CONSTRAINT PK_transaction PRIMARY KEY (transaction_id),
-	CONSTRAINT FK_transaction_account_rec FOREIGN KEY (receiver_account_id) REFERENCES account(account_id),
-	CONSTRAINT FK_transaction_account_sen FOREIGN KEY (sender_account_id) REFERENCES account(account_id)
+	CONSTRAINT FK_transaction_account_rec FOREIGN KEY (receiver_username) REFERENCES tenmo_user(username),
+	CONSTRAINT FK_transaction_account_sen FOREIGN KEY (sender_username) REFERENCES tenmo_user(username)
 );
 
 
@@ -62,8 +62,8 @@ INSERT INTO account (user_id, balance)
 VALUES (1001, 1500.0), (1002, 500.0);
 
 
-INSERT INTO transaction (receiver_account_id, sender_account_id, money_sent, status)
-VALUES (2002, 2001, 500, 'Approved'), (2001, 2002, 300, 'Pending');
+INSERT INTO transaction (receiver_username, sender_username, money_sent, status)
+VALUES ('user', 'bob', 500, 'Approved'), ('bob', 'user', 300, 'Pending');
 
 
 COMMIT;

@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.sql.DataTruncation;
+
 @Component
 public class CheckTransfer implements Check{
 
@@ -23,10 +25,11 @@ public class CheckTransfer implements Check{
     public boolean checkNotMoreThanBalance(Transaction transaction) {
         String sql = "SELECT balance " +
                 "FROM account " +
-                "WHERE account_id = ?;";
+                "JOIN tenmo_user ON tenmo_user.user_id = account.user_id " +
+                "WHERE username = ?;";
         boolean canWithdraw = false;
         try {
-            double balance = this.jdbcTemplate.queryForObject(sql, Double.class, transaction.getSenderAccountId());
+            double balance = this.jdbcTemplate.queryForObject(sql, Double.class, transaction.getSenderUsername());
             if (balance >= transaction.getMoneySent()) {
                 canWithdraw = true;
             }
@@ -38,42 +41,43 @@ public class CheckTransfer implements Check{
 
     @Override
     public boolean checkNotSelf(Transaction transaction) {
-        if (transaction.getReceiverAccountId() != transaction.getSenderAccountId()) {
+        if (!transaction.getReceiverUsername().equalsIgnoreCase(transaction.getSenderUsername())) {
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean canAccessTransactionInfo(int accountId, Transaction transaction) {
-        if(accountId == transaction.getSenderAccountId() || accountId == transaction.getReceiverAccountId()) {
+    public boolean canAccessTransactionInfo(String name, Transaction transaction) {
+        if(name.equalsIgnoreCase(transaction.getSenderUsername()) || name.equalsIgnoreCase(transaction.getReceiverUsername())) {
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean canEditTransactionInfo(int accountId, Transaction transaction) {
-        if(accountId == transaction.getSenderAccountId()) {
+    public boolean canEditTransactionInfo(String name, Transaction transaction) {
+        if(name.equalsIgnoreCase(transaction.getSenderUsername())) {
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean checkIsReceiver(int accountId, Transaction transaction) {
-        if(accountId == transaction.getReceiverAccountId()) {
+    public boolean checkIsReceiver(String name, Transaction transaction) {
+        if(name.equalsIgnoreCase(transaction.getReceiverUsername())) {
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean checkValidAccountId(int accountId) {
-        String sql = "SELECT user_id " +
+    public boolean checkValidAccountId(String name) {
+        String sql = "SELECT account.user_id " +
                 "FROM account " +
-                "WHERE account_id = ?;";
-        SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, accountId);
+                "JOIN tenmo_user ON tenmo_user.user_id = account.user_id " +
+                "WHERE username = ?;";
+        SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(sql, name);
         if (rowSet.next()){
             return true;
         }
@@ -94,7 +98,7 @@ public class CheckTransfer implements Check{
 
     @Override
     public boolean checkValidTransaction(Transaction transaction) {
-         return checkValidAccountId(transaction.getSenderAccountId()) && checkValidAccountId(transaction.getReceiverAccountId());
+         return checkValidAccountId(transaction.getSenderUsername()) && checkValidAccountId(transaction.getReceiverUsername());
     }
 
     @Override
@@ -107,5 +111,32 @@ public class CheckTransfer implements Check{
             return true;
         }
         return false;
+    }
+
+
+
+    @Override
+    public boolean checkTransactionBalanceEditAndNotSelf(Transaction transaction, String name) {
+        return checkValidTransaction(transaction) && checkNotMoreThanBalance(transaction) && canEditTransactionInfo(name, transaction) && checkNotSelf(transaction);
+    }
+
+    @Override
+    public boolean checkTransactionTransactionIdPendingEditNotSelf(Transaction transaction, String name, int id) {
+        return checkValidTransaction(transaction) && checkValidTransactionId(id) && checkWasPending(id) && canEditTransactionInfo(name, transaction) && checkNotSelf(transaction);
+    }
+
+    @Override
+    public boolean checkTransactionTransactionIdBalancePendingEditNotSelf(Transaction transaction, String name, int id) {
+        return checkValidTransaction(transaction) && checkNotMoreThanBalance(transaction) && checkValidTransactionId(id) && checkWasPending(id) && canEditTransactionInfo(name, transaction) && checkNotSelf(transaction);
+    }
+
+    @Override
+    public boolean checkTransactionReceiverNotSelf(Transaction transaction, String name) {
+        return checkValidTransaction(transaction) && checkIsReceiver(name, transaction) && checkNotSelf(transaction);
+    }
+
+    @Override
+    public boolean checkTransactionTransactionIdPendingAccessNotSelf(Transaction transaction, String name, int id) {
+        return checkValidTransaction(transaction) && checkValidTransactionId(id) && checkWasPending(id) && canAccessTransactionInfo(name, transaction) && checkNotSelf(transaction);
     }
 }

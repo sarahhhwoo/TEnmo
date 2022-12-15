@@ -10,13 +10,13 @@ public interface Check {
 
     boolean checkNotSelf(Transaction transaction);
 
-    boolean canAccessTransactionInfo(int accountId, Transaction transaction);
+    boolean canAccessTransactionInfo(String name, Transaction transaction);
 
-    boolean canEditTransactionInfo(int accountId, Transaction transaction);
+    boolean canEditTransactionInfo(String name, Transaction transaction);
 
-    boolean checkIsReceiver(int accountId, Transaction transaction);
+    boolean checkIsReceiver(String name, Transaction transaction);
 
-    boolean checkValidAccountId(int accountId);
+    boolean checkValidAccountId(String name);
 
     boolean checkValidTransactionId(int transactionId);
 
@@ -24,6 +24,13 @@ public interface Check {
 
     boolean checkWasPending(int transactionId);
 
+    boolean checkTransactionBalanceEditAndNotSelf(Transaction transaction, String name);
 
+    boolean checkTransactionTransactionIdPendingEditNotSelf(Transaction transaction, String name, int id);
 
+    boolean checkTransactionTransactionIdBalancePendingEditNotSelf(Transaction transaction, String name, int id);
+
+    boolean checkTransactionReceiverNotSelf(Transaction transaction, String name);
+
+    boolean checkTransactionTransactionIdPendingAccessNotSelf(Transaction transaction, String name, int id);
 }

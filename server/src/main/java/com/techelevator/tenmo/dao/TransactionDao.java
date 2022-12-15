@@ -14,7 +14,7 @@ public interface TransactionDao {
 
     Transaction updateTransaction(int transactionID, Transaction transaction);
 
-    List<Transaction> listAllPendingTransactions(int accountId);
+    List<Transaction> listAllPendingTransactions(String name);
 
     int create(Transaction transaction);
 
