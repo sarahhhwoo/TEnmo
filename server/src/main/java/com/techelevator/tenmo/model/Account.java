@@ -1,9 +1,12 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.DecimalMin;
+
 public class Account {
 
     private int account_id;
     private int user_id;
+    @DecimalMin(value = "0.00", message = "Account balance cannot be negative")
     private double balance;
 
     public int getAccount_id() {

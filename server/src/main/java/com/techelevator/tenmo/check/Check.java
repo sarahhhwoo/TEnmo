@@ -6,17 +6,21 @@ public interface Check {
 
     boolean checkGreaterThanZero();
 
-    boolean checkNotMoreThanBalance();
+    boolean checkNotMoreThanBalance(Transaction transaction);
 
-    boolean checkNotSelf();
+    boolean checkNotSelf(Transaction transaction);
 
-    boolean checkAccessOwnAccount();
+    boolean canAccessTransactionInfo(int accountId, Transaction transaction);
+
+    boolean canEditTransactionInfo(int accountId, Transaction transaction);
 
     boolean checkValidAccountId(int accountId);
 
     boolean checkValidTransactionId(int transactionId);
 
     boolean checkValidTransaction(Transaction transaction);
+
+    boolean checkWasPending(int transactionId);
 
 
 

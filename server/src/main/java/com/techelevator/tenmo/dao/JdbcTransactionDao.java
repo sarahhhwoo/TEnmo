@@ -5,10 +5,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class JdbcTransactionDao implements TransactionDao{
 
     private JdbcTemplate jdbcTemplate;
@@ -57,6 +59,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public Transaction updateTransaction(int transactionID, Transaction transaction) {
+        //check prior approval
         String sql = "UPDATE transaction " +
                 "SET receiver_account_id = ?, sender_account_id = ?, money_sent = ?, status = ? " +
                 "WHERE transaction_id = ?;";
@@ -94,7 +97,22 @@ public class JdbcTransactionDao implements TransactionDao{
         }catch (DataAccessException e){
             return false;
         }
+        if (transaction.getStatus().equalsIgnoreCase("Approved")) {
+            transferFunds(transaction);
+        }
         return true;
+    }
+
+    @Override
+    public void transferFunds(Transaction transaction) {
+        String sql1 = "UPDATE account " +
+                "SET balance = balance - ? " +
+                "WHERE account_id = ?;";
+        this.jdbcTemplate.update(sql1, transaction.getMoneySent(), transaction.getSenderAccountId());
+        String sql2 = "UPDATE account " +
+                "SET balance = balance + ? " +
+                "WHERE account_id = ?;";
+        this.jdbcTemplate.update(sql2, transaction.getMoneySent(), transaction.getReceiverAccountId());
     }
 
     private Transaction mapRowToTransaction(SqlRowSet rowSet){
@@ -106,4 +124,5 @@ public class JdbcTransactionDao implements TransactionDao{
         transaction.setStatus(rowSet.getString("status"));
         return transaction;
     }
+
 }

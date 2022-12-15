@@ -4,7 +4,9 @@ import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transaction;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CheckTransfer implements Check{
 
     private JdbcTemplate jdbcTemplate;
@@ -18,17 +20,43 @@ public class CheckTransfer implements Check{
     }
 
     @Override
-    public boolean checkNotMoreThanBalance() {
+    public boolean checkNotMoreThanBalance(Transaction transaction) {
+        String sql = "SELECT balance " +
+                "FROM account " +
+                "WHERE account_id = ?;";
+        boolean canWithdraw = false;
+        try {
+            double balance = this.jdbcTemplate.queryForObject(sql, Double.class, transaction.getSenderAccountId());
+            if (balance >= transaction.getMoneySent()) {
+                canWithdraw = true;
+            }
+        } catch (NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
+        return canWithdraw;
+    }
+
+    @Override
+    public boolean checkNotSelf(Transaction transaction) {
+        if (transaction.getReceiverAccountId() != transaction.getSenderAccountId()) {
+            return true;
+        }
         return false;
     }
 
     @Override
-    public boolean checkNotSelf() {
+    public boolean canAccessTransactionInfo(int accountId, Transaction transaction) {
+        if(accountId == transaction.getSenderAccountId() || accountId == transaction.getReceiverAccountId()) {
+            return true;
+        }
         return false;
     }
 
     @Override
-    public boolean checkAccessOwnAccount() {
+    public boolean canEditTransactionInfo(int accountId, Transaction transaction) {
+        if(accountId == transaction.getSenderAccountId()) {
+            return true;
+        }
         return false;
     }
 
@@ -59,5 +87,17 @@ public class CheckTransfer implements Check{
     @Override
     public boolean checkValidTransaction(Transaction transaction) {
          return checkValidAccountId(transaction.getSenderAccountId()) && checkValidAccountId(transaction.getReceiverAccountId());
+    }
+
+    @Override
+    public boolean checkWasPending(int transactionId) {
+        String sql = "SELECT status " +
+                "FROM transaction " +
+                "WHERE transaction_id = ?;";
+        String status = this.jdbcTemplate.queryForObject(sql, String.class, transactionId);
+        if (status.equalsIgnoreCase("pending")) {
+            return true;
+        }
+        return false;
     }
 }

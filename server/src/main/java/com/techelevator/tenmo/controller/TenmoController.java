@@ -6,6 +6,7 @@ import com.techelevator.tenmo.dao.TransactionDao;
 import com.techelevator.tenmo.dao.UserDao;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transaction;
+import com.techelevator.tenmo.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -47,8 +48,7 @@ public class TenmoController {
 
     @RequestMapping(path = "/transactions",method = RequestMethod.GET)
     public List<Transaction> listTransactionsByAccountId(Principal principal){
-        int userId = userDao.findIdByUsername(principal.getName());
-        int accountId = accountDao.getAccountIdByUserId(userId);
+        int accountId = getAccountIdFromUsername(principal.getName());
         if (checkTransfer.checkValidAccountId(accountId)){
             return transactionDao.listAllTransactionsByUser(accountId);
         }
@@ -65,8 +65,9 @@ public class TenmoController {
 
    @ResponseStatus(HttpStatus.CREATED)
    @RequestMapping(path = "/transactions", method = RequestMethod.POST)
-    public void createTransaction(@Valid @RequestBody Transaction transaction){
-        if (checkTransfer.checkValidTransaction(transaction)){
+    public void createTransaction(@Valid @RequestBody Transaction transaction, Principal principal){
+       int senderAccountId = getAccountIdFromUsername(principal.getName());
+        if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkNotMoreThanBalance(transaction) && checkTransfer.canEditTransactionInfo(senderAccountId, transaction) && checkTransfer.checkNotSelf(transaction)){
              this.transactionDao.create(transaction);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to create transaction.");
@@ -75,10 +76,14 @@ public class TenmoController {
 
    @ResponseStatus(HttpStatus.ACCEPTED)
    @RequestMapping(path = "/transactions/{id}", method = RequestMethod.PUT)
-    public void updateTransaction(@PathVariable int id, @Valid @RequestBody Transaction transaction){
-        if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkValidTransactionId(id)){
+    public void updateTransaction(@PathVariable int id, @Valid @RequestBody Transaction transaction, Principal principal){
+       int accountId = getAccountIdFromUsername(principal.getName());
+        if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkValidTransactionId(id) && checkTransfer.checkWasPending(id) && checkTransfer.canAccessTransactionInfo(accountId, transaction) && checkTransfer.checkNotSelf(transaction)){
             this.transactionDao.updateTransaction(id, transaction);
-        } else {
+        } else if(!checkTransfer.checkWasPending(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction must be pending to update.");
+        }
+        else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction ID: " + id + " was not found " +
                     "or invalid transaction object entered.");
         }
@@ -86,11 +91,22 @@ public class TenmoController {
 
    @RequestMapping(path = "/transactions/pending", method = RequestMethod.GET)
     public List<Transaction> listPendingTransactions(Principal principal){
-        int userId = userDao.findIdByUsername(principal.getName());
-       int accountId = accountDao.getAccountIdByUserId(userId);
-        if (checkTransfer.checkValidAccountId(userId)){
+       int accountId = getAccountIdFromUsername(principal.getName());
+        if (checkTransfer.checkValidAccountId(accountId)){
             return this.transactionDao.listAllPendingTransactions(accountId);
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user ID");
    }
+
+   @RequestMapping(path = "/users", method = RequestMethod.GET)
+    public List<String> listAllUsernames(Principal principal) {
+        String username = principal.getName();
+         return this.userDao.findAll(username);
    }
+
+   private int getAccountIdFromUsername(String name)  {
+       int senderId = userDao.findIdByUsername(name);
+       return accountDao.getAccountIdByUserId(senderId);
+   }
+
+}

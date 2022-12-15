@@ -19,4 +19,7 @@ public interface TransactionDao {
     //double getMoneySentByID();
 
     boolean create(Transaction transaction);
+
+    void transferFunds(Transaction transaction);
+
 }

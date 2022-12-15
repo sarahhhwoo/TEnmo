@@ -5,10 +5,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.util.zip.DataFormatException;
 
+@Component
 public class JdbcAccountDao implements AccountDao{
 
     private JdbcTemplate jdbcTemplate;
