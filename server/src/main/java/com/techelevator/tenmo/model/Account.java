@@ -9,6 +9,15 @@ public class Account {
     @DecimalMin(value = "0.00", message = "Account balance cannot be negative")
     private double balance;
 
+    public Account(int accountId, int userId, double balance){
+        this.account_id = accountId;
+        this.user_id = userId;
+        this.balance = balance;
+    }
+
+    public Account() {
+    }
+
     public int getAccount_id() {
         return this.account_id;
     }

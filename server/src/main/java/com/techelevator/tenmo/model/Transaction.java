@@ -12,6 +12,18 @@ public class Transaction {
     private double moneySent;
     private String status;
 
+    public Transaction() {
+
+    }
+
+    public Transaction(int transactionId, int receiverAccountId, int senderAccountId, double moneySent, String status) {
+        this.transactionId = transactionId;
+        this.receiverAccountId = receiverAccountId;
+        this.senderAccountId = senderAccountId;
+        this.moneySent = moneySent;
+        this.status = status;
+    }
+
     public int getTransactionId() {
         return this.transactionId;
     }
