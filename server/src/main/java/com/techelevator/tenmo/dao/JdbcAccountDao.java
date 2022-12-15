@@ -1,14 +1,11 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Account;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import javax.swing.*;
-import java.util.zip.DataFormatException;
 
 @Component
 public class JdbcAccountDao implements AccountDao{
@@ -51,7 +48,6 @@ public class JdbcAccountDao implements AccountDao{
                 "FROM account " +
                 "WHERE account_id =?;";
         double balance = -1;
-        //TODO: check!!
 
         try {
             balance = this.jdbcTemplate.queryForObject(sql, double.class, accountId);
@@ -85,7 +81,7 @@ public class JdbcAccountDao implements AccountDao{
                 "FROM account " +
                 "WHERE user_id = ?;";
         int accountId = -1;
-        //TODO: check!!
+
         try {
             accountId = this.jdbcTemplate.queryForObject(sql, Integer.class, userId);
         } catch (NullPointerException e){

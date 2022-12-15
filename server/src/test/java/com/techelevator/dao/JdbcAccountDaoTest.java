@@ -1,10 +1,7 @@
 package com.techelevator.dao;
 
-import com.techelevator.dao.BaseDaoTests;
 import com.techelevator.tenmo.dao.JdbcAccountDao;
-import com.techelevator.tenmo.dao.JdbcUserDao;
 import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.User;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,8 +54,6 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
         assertAccountMatch(ACCOUNT_1, actual1);
         assertAccountMatch(ACCOUNT_2, actual2);
     }
-
-    // TODO: possible null/fail test
 
     @Test
     public void getAccountBalance_returns_correct_balance() {

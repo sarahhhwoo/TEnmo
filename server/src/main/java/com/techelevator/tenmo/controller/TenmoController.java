@@ -4,20 +4,10 @@ import com.techelevator.tenmo.check.CheckTransfer;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransactionDao;
 import com.techelevator.tenmo.dao.UserDao;
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.Transaction;
-import com.techelevator.tenmo.model.User;
-import org.springframework.data.relational.core.sql.In;
-import org.springframework.http.HttpStatus;
+import com.techelevator.tenmo.exception.AccountNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import javax.validation.TraversableResolver;
-import javax.validation.Valid;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 
 @PreAuthorize("isAuthenticated()")
@@ -38,13 +28,17 @@ public class TenmoController {
 
 
     @RequestMapping(path = "/balance", method = RequestMethod.GET)
-    public double currentBalance(Principal principal){
+    public double currentBalance(Principal principal) throws AccountNotFoundException {
         int userId = userDao.findIdByUsername(principal.getName());
         int accountId = accountDao.getAccountIdByUserId(userId);
         if (checkTransfer.checkValidAccountId(principal.getName())) {
-            return accountDao.getAccountBalance(accountId);
+            double balance = accountDao.getAccountBalance(accountId);
+            if(balance == -1) {
+                throw new AccountNotFoundException();
+            }
+            return balance;
         }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Account ID: " + accountId + " was not found.");
+        throw new AccountNotFoundException();
     }
 
 

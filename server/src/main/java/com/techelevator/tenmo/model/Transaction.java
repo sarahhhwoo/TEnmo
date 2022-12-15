@@ -1,7 +1,6 @@
 package com.techelevator.tenmo.model;
 
 import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Positive;
 
 public class Transaction {
 
