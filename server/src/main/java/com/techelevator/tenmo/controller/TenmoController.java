@@ -143,7 +143,7 @@ public class TenmoController {
        Transaction transaction = this.transactionDao.getTransactionByID(id);
        transaction.setStatus("Rejected");
        int senderId = getAccountIdFromUsername(principal.getName());
-       if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkNotMoreThanBalance(transaction) && checkTransfer.checkValidTransactionId(id) && checkTransfer.checkWasPending(id) && checkTransfer.canEditTransactionInfo(senderId, transaction) && checkTransfer.checkNotSelf(transaction)){
+       if (checkTransfer.checkValidTransaction(transaction) && checkTransfer.checkValidTransactionId(id) && checkTransfer.checkWasPending(id) && checkTransfer.canEditTransactionInfo(senderId, transaction) && checkTransfer.checkNotSelf(transaction)){
            this.transactionDao.updateTransaction(id, transaction);
        } else if(!checkTransfer.checkWasPending(id)) {
            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction must be pending to update.");
