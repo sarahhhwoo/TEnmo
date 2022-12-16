@@ -114,7 +114,7 @@ public class ConsoleService {
         return promptForAmountOfMoney();
     }
 
-    public void viewPendingRequest(List<Transaction> transactions, String username){
+    public Transaction viewPendingRequest(List<Transaction> transactions, String username){
         System.out.println();
         System.out.println("-----------------------");
         System.out.println("Pending Transactions");
@@ -137,11 +137,12 @@ public class ConsoleService {
         int transactionId = promptForTransactionId();
         for (Transaction transaction : transactions){
             if(transaction.getTransactionId() == transactionId){
-                showTransactionDetails(transaction);
+                return transaction;
             }
         }
-        approveRejectTransaction(transactionId);
+        return null;
     }
+
 
     public void approveRejectTransaction(int transactionId){
         System.out.println("-----------");
@@ -150,9 +151,6 @@ public class ConsoleService {
         System.out.println("0. Exit");
         System.out.println("-----------");
         System.out.print("Please choose an option: ");
-        int option = Integer.parseInt(scanner.nextLine());
-        //TODO: do something with this
-
     }
 
     public void showTransactionDetails(Transaction transaction){

@@ -58,6 +58,40 @@ public class TenmoService {
         return null;
     }
 
+    public void requestTransaction(Transaction transaction) {
+        try {
+            restTemplate.exchange(API_BASE_URL + "request", HttpMethod.POST, makeTransactionEntity(transaction), Integer.class);
+        } catch (ResourceAccessException | RestClientResponseException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public List<Transaction> getPendingTransactions(){
+        try {
+            return Arrays.asList(restTemplate.exchange(API_BASE_URL + "transactions/pending", HttpMethod.GET, makeAuthEntity(), Transaction[].class).getBody());
+        } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public void approveTransaction(int id){
+        try {
+            restTemplate.exchange(API_BASE_URL + "transaction/" + id + "/approve", HttpMethod.PUT, makeAuthEntity(), Void.class);
+        } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void rejectTransaction(int id){
+        try {
+            restTemplate.exchange(API_BASE_URL + "transaction/" + id + "/reject", HttpMethod.PUT, makeAuthEntity(), Void.class);
+        } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+
     private HttpEntity<Void> makeAuthEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(authToken);

@@ -22,17 +22,19 @@ public class TenmoApp {
         double balance = 0.0;
         while (menuSelection != 0) {
             //Login
-            consoleService.printLoginMenu();
-            menuSelection = consoleService.promptForMenuSelection();
-            if (menuSelection == 1) {
-                username = handleLogin();
-                balance = handleGetBalance();
-            } else if (menuSelection == 2) {
-                handleRegister();
-            } else if (menuSelection == 0) {
-                break;
-            } else {
-                System.out.println("Invalid Selection");
+            if(username == null) {
+                consoleService.printLoginMenu();
+                menuSelection = consoleService.promptForMenuSelection();
+                if (menuSelection == 1) {
+                    username = handleLogin();
+                    balance = handleGetBalance();
+                } else if (menuSelection == 2) {
+                    handleRegister();
+                } else if (menuSelection == 0) {
+                    break;
+                } else {
+                    System.out.println("Invalid Selection");
+                }
             }
             if(balance == -1){
                 menuSelection = 0;
@@ -47,13 +49,17 @@ public class TenmoApp {
                     handleSendMoney(username);
                 } else if (menuSelection == 2){
                     handleViewTransactions(username);
+                } else if (menuSelection ==3) {
+                    handleRequestTransaction(username);
+                } else if (menuSelection ==4){
+                    handleViewPendingRequests(username);
+                } else if (menuSelection == 0){
+                    break;
+                } else {
+                    System.out.println("Invalid selection.");
                 }
-
             }
-
         }
-
-
     }
 
     private String handleLogin() {
@@ -94,23 +100,46 @@ public class TenmoApp {
         consoleService.showTransactions(tenmoService.getTransactions(), name);
     }
 
-    private void handleViewTransactionDetails(){
+//    private void handleViewTransactionDetails(){
+//        consoleService.showTransactionDetails(tenmoService.getTransactions().g);
+//    }
 
+    private void handleRequestTransaction(String name){
+        String nameSender = consoleService.requestMoney(tenmoService.getUsernames());
+        double amount = consoleService.getAmountToSend();
+        Transaction transaction = new Transaction();
+        transaction.setMoneySent(amount);
+        transaction.setReceiverUsername(name);
+        transaction.setStatus("Pending");
+        transaction.setSenderUsername(nameSender);
+        tenmoService.requestTransaction(transaction);
     }
 
-    private void handleRequestTransaction(){
-
+    private void handleViewPendingRequests(String name){
+        Transaction transaction = consoleService.viewPendingRequest(tenmoService.getPendingTransactions(), name);
+        int transactionId = transaction.getTransactionId();
+        consoleService.showTransactionDetails(transaction);
+        consoleService.approveRejectTransaction(transactionId);
+        int selection = consoleService.promptForMenuSelection();
+        while (selection != 0) {
+            if (selection == 1) {
+                handleApprove(transactionId);
+            } else if (selection == 2) {
+                handleReject(transactionId);
+            } else {
+                System.out.println("Invalid option");
+                handleViewPendingRequests(name);
+            }
+        }
     }
 
-    private void handleViewPendingRequests(){
-
+    private void handleApprove(int id){
+        tenmoService.approveTransaction(id);
+        System.out.println("Transaction is now approved.");
     }
 
-    private void handleApprove(){
-
-    }
-
-    private void handleReject(){
-
+    private void handleReject(int id){
+        tenmoService.rejectTransaction(id);
+        System.out.println("Transaction is now rejected/cancelled.");
     }
 }
