@@ -19,11 +19,12 @@ public class ConsoleService {
         System.out.println("2: Register");
         System.out.println("0: Exit");
         System.out.println();
+
     }
 
     public void printMainMenu(String name, double balance){
         System.out.println();
-        System.out.println("----Welcome " + name + " !----");
+        System.out.println("----Welcome " + name + "!----");
         System.out.println("Your current balance is: $" + balance);
         System.out.println();
         System.out.println("--What would you like to do?--");
@@ -166,6 +167,7 @@ public class ConsoleService {
     }
 
     public int promptForMenuSelection(){
+        System.out.print("Please select and option: ");
         int menuSelection;
         try {
             menuSelection = Integer.parseInt(scanner.nextLine());
@@ -177,7 +179,7 @@ public class ConsoleService {
 
     private String promptForUserId(List<String> users){
         try {
-            return users.get(Integer.parseInt(scanner.nextLine()));
+            return users.get(Integer.parseInt(scanner.nextLine())-1);
         } catch (NumberFormatException e){
             System.out.println("Invalid User #. Please try again.");
             promptForUserId(users);

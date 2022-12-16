@@ -12,6 +12,7 @@ public class AuthenticationService {
     private static final String API_BASE_URL = "http://localhost:8080/";
     private final RestTemplate restTemplate = new RestTemplate();
 
+
     public String login(String username, String password) {
         CredentialsDto credentialsDto = new CredentialsDto();
         credentialsDto.setUsername(username);
@@ -39,7 +40,6 @@ public class AuthenticationService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<CredentialsDto> entity = new HttpEntity<>(credentialsDto, headers);
-        String token = null;
         try {
             restTemplate.postForObject(API_BASE_URL + "register", entity, CredentialsDto.class);
         } catch (RestClientResponseException | ResourceAccessException e) {

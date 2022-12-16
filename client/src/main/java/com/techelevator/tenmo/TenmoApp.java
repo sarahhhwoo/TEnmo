@@ -47,12 +47,14 @@ public class TenmoApp {
                 menuSelection = consoleService.promptForMenuSelection();
                 if (menuSelection == 1){
                     handleSendMoney(username);
+                    balance = handleGetBalance();
                 } else if (menuSelection == 2){
                     handleViewTransactions(username);
                 } else if (menuSelection ==3) {
                     handleRequestTransaction(username);
                 } else if (menuSelection ==4){
                     handleViewPendingRequests(username);
+                    balance = handleGetBalance();
                 } else if (menuSelection == 0){
                     break;
                 } else {
@@ -106,7 +108,7 @@ public class TenmoApp {
 
     private void handleRequestTransaction(String name){
         String nameSender = consoleService.requestMoney(tenmoService.getUsernames());
-        double amount = consoleService.getAmountToSend();
+        double amount = consoleService.getAmountToRequest();
         Transaction transaction = new Transaction();
         transaction.setMoneySent(amount);
         transaction.setReceiverUsername(name);
@@ -119,17 +121,24 @@ public class TenmoApp {
         Transaction transaction = consoleService.viewPendingRequest(tenmoService.getPendingTransactions(), name);
         int transactionId = transaction.getTransactionId();
         consoleService.showTransactionDetails(transaction);
-        consoleService.approveRejectTransaction(transactionId);
-        int selection = consoleService.promptForMenuSelection();
-        while (selection != 0) {
-            if (selection == 1) {
-                handleApprove(transactionId);
-            } else if (selection == 2) {
-                handleReject(transactionId);
-            } else {
-                System.out.println("Invalid option");
-                handleViewPendingRequests(name);
+        if(transaction.getSenderUsername().equalsIgnoreCase(name)) {
+            consoleService.approveRejectTransaction(transactionId);
+            int selection = consoleService.promptForMenuSelection();
+            while (selection != 0) {
+                if (selection == 1) {
+                    handleApprove(transactionId);
+                    selection = 0;
+                } else if (selection == 2) {
+                    handleReject(transactionId);
+                    selection =0;
+                } else {
+                    System.out.println("Invalid option");
+                    handleViewPendingRequests(name);
+                    selection = 0;
+                }
             }
+        }else{
+            System.out.println("Waiting for other user to accept or reject.");
         }
     }
 
