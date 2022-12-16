@@ -15,13 +15,11 @@ import java.util.List;
 public class TenmoController {
 
     private AccountDao accountDao;
-    private TransactionDao transactionDao;
     private CheckTransfer checkTransfer;
     private UserDao userDao;
 
-    public TenmoController(AccountDao accountDao, TransactionDao transactionDao, CheckTransfer checkTransfer, UserDao userDao){
+    public TenmoController(AccountDao accountDao, CheckTransfer checkTransfer, UserDao userDao){
         this.accountDao = accountDao;
-        this.transactionDao = transactionDao;
         this.checkTransfer = checkTransfer;
         this.userDao = userDao;
     }

@@ -17,16 +17,12 @@ import java.security.Principal;
 @RestController
 public class RequestController {
 
-    private AccountDao accountDao;
     private TransactionDao transactionDao;
     private CheckTransfer checkTransfer;
-    private UserDao userDao;
 
-    public RequestController(AccountDao accountDao, TransactionDao transactionDao, CheckTransfer checkTransfer, UserDao userDao) {
-        this.accountDao = accountDao;
+    public RequestController(TransactionDao transactionDao, CheckTransfer checkTransfer) {
         this.transactionDao = transactionDao;
         this.checkTransfer = checkTransfer;
-        this.userDao = userDao;
     }
 
     @RequestMapping(path = "/request", method = RequestMethod.POST)
@@ -58,17 +54,12 @@ public class RequestController {
     public void rejectTransaction(@PathVariable int id, Principal principal) throws TransactionNotPendingException, TransactionNotFoundException {
         Transaction transaction = this.transactionDao.getTransactionByID(id);
         transaction.setStatus("Rejected");
-        if (checkTransfer.checkTransactionTransactionIdPendingEditNotSelf(transaction, principal.getName(), id)){
+        if (checkTransfer.checkTransactionTransactionIdPendingAccessNotSelf(transaction, principal.getName(), id)){
             this.transactionDao.updateTransaction(id, transaction);
         } else if(!checkTransfer.checkWasPending(id)) {
             throw new TransactionNotPendingException();
         } else {
             throw new TransactionNotFoundException();
         }
-    }
-
-    private int getAccountIdFromUsername(String name)  {
-        int senderId = userDao.findIdByUsername(name);
-        return accountDao.getAccountIdByUserId(senderId);
     }
 }
