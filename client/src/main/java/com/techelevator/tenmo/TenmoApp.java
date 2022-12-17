@@ -56,7 +56,9 @@ public class TenmoApp {
                     handleViewPendingRequests(username);
                     balance = handleGetBalance();
                 } else if (menuSelection == 0){
-                    break;
+                    username = null;
+                    menuSelection = -1;
+                    System.out.println("Logging out.");
                 } else {
                     System.out.println("Invalid selection.");
                 }
@@ -119,26 +121,44 @@ public class TenmoApp {
 
     private void handleViewPendingRequests(String name){
         Transaction transaction = consoleService.viewPendingRequest(tenmoService.getPendingTransactions(), name);
-        int transactionId = transaction.getTransactionId();
-        consoleService.showTransactionDetails(transaction);
-        if(transaction.getSenderUsername().equalsIgnoreCase(name)) {
-            consoleService.approveRejectTransaction(transactionId);
-            int selection = consoleService.promptForMenuSelection();
-            while (selection != 0) {
-                if (selection == 1) {
-                    handleApprove(transactionId);
-                    selection = 0;
-                } else if (selection == 2) {
-                    handleReject(transactionId);
-                    selection =0;
-                } else {
-                    System.out.println("Invalid option");
-                    handleViewPendingRequests(name);
-                    selection = 0;
+        if (transaction != null) {
+            int transactionId = transaction.getTransactionId();
+            consoleService.showTransactionDetails(transaction);
+            if (transaction.getSenderUsername().equalsIgnoreCase(name)) {
+                consoleService.approveRejectTransaction(transactionId);
+                int selection = consoleService.promptForMenuSelection();
+                while (selection != 0) {
+                    if (selection == 1) {
+                        handleApprove(transactionId);
+                        selection = 0;
+                    } else if (selection == 2) {
+                        handleReject(transactionId);
+                        selection = 0;
+                    } else if (selection == 0) {
+                        break;
+                    } else {
+                        System.out.println("Invalid option");
+                        handleViewPendingRequests(name);
+                        selection = 0;
+                    }
                 }
+            } else {
+                consoleService.rejectTransaction();
+                int selection = consoleService.promptForMenuSelection();
+                while (selection != 0) {
+                    if (selection == 1) {
+                        handleReject(transactionId);
+                        selection = 0;
+                    } else if (selection == 0) {
+                        selection = 0;
+                    } else {
+                        System.out.println("Invalid option");
+                        handleViewPendingRequests(name);
+                        selection = 0;
+                    }
+                }
+                // System.out.println("Waiting for other user to accept or reject.");
             }
-        }else{
-            System.out.println("Waiting for other user to accept or reject.");
         }
     }
 

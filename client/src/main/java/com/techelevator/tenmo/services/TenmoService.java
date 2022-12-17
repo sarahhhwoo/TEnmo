@@ -27,7 +27,7 @@ public class TenmoService {
         try {
             return restTemplate.exchange(API_BASE_URL + "balance", HttpMethod.GET, makeAuthEntity(), Double.class).getBody();
         } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            System.out.println(e.getMessage());
+            System.out.println("Error: Cannot retrieve balance at the moment.");
         }
         return -1;
     }
@@ -36,7 +36,7 @@ public class TenmoService {
         try {
             restTemplate.exchange(API_BASE_URL + "transactions", HttpMethod.POST, makeTransactionEntity(transaction), Integer.class);
         } catch (ResourceAccessException | RestClientResponseException e){
-            System.out.println(e.getMessage());
+            System.out.println("Error: Cannot complete inputted transaction due to bad client request.");
         }
     }
 
@@ -44,7 +44,7 @@ public class TenmoService {
         try {
             return Arrays.asList(restTemplate.exchange(API_BASE_URL + "users", HttpMethod.GET, makeAuthEntity(), String[].class).getBody());
         }catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            System.out.println(e.getMessage());
+            System.out.println("Error: Unable to retrieve usernames at the moment.");
         }
         return null;
     }
@@ -53,7 +53,7 @@ public class TenmoService {
         try {
             return Arrays.asList(restTemplate.exchange(API_BASE_URL + "transactions", HttpMethod.GET, makeAuthEntity(), Transaction[].class).getBody());
         } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            System.out.println(e.getMessage());
+            System.out.println("Error: Unable to retrieve transaction history.");
         }
         return null;
     }
@@ -62,7 +62,7 @@ public class TenmoService {
         try {
             restTemplate.exchange(API_BASE_URL + "request", HttpMethod.POST, makeTransactionEntity(transaction), Integer.class);
         } catch (ResourceAccessException | RestClientResponseException e){
-            System.out.println(e.getMessage());
+            System.out.println("Error: Cannot complete your request due to bad client request.");
         }
     }
 
@@ -70,24 +70,26 @@ public class TenmoService {
         try {
             return Arrays.asList(restTemplate.exchange(API_BASE_URL + "transactions/pending", HttpMethod.GET, makeAuthEntity(), Transaction[].class).getBody());
         } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            System.out.println(e.getMessage());
+            System.out.println("Error: Unable to retrieve pending transactions.");
         }
         return null;
     }
 
     public void approveTransaction(int id){
         try {
-            restTemplate.exchange(API_BASE_URL + "transaction/" + id + "/approve", HttpMethod.PUT, makeAuthEntity(), Void.class);
+            restTemplate.exchange(API_BASE_URL + "transactions/" + id + "/approve", HttpMethod.PUT, makeAuthEntity(), Void.class);
         } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
+            System.out.println("Error: Unable to approve transaction.");
         }
     }
 
     public void rejectTransaction(int id){
         try {
-            restTemplate.exchange(API_BASE_URL + "transaction/" + id + "/reject", HttpMethod.PUT, makeAuthEntity(), Void.class);
+            restTemplate.exchange(API_BASE_URL + "transactions/" + id + "/reject", HttpMethod.PUT, makeAuthEntity(), Void.class);
         } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
+            System.out.println("Error: Unable to reject transaction.");
         }
     }
 
