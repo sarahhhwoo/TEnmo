@@ -18,7 +18,7 @@ import java.util.List;
 
 @PreAuthorize("isAuthenticated()")
 @RestController
-public class TransactionContoller {
+public class TransactionController {
 
     private AccountDao accountDao;
     private TransactionDao transactionDao;
@@ -26,7 +26,7 @@ public class TransactionContoller {
     private UserDao userDao;
 
 
-    public TransactionContoller(AccountDao accountDao, TransactionDao transactionDao, CheckTransfer checkTransfer, UserDao userDao) {
+    public TransactionController(AccountDao accountDao, TransactionDao transactionDao, CheckTransfer checkTransfer, UserDao userDao) {
         this.accountDao = accountDao;
         this.transactionDao = transactionDao;
         this.checkTransfer = checkTransfer;

@@ -25,9 +25,9 @@ public class JdbcUserDao implements UserDao {
         Integer id = jdbcTemplate.queryForObject(sql, Integer.class, username);
         if (id != null) {
             return id;
-        } else {
-            return -1;
         }
+        return -1;
+
     }
 
     @Override

@@ -104,19 +104,19 @@ public class TenmoApp {
         consoleService.showTransactions(tenmoService.getTransactions(), name);
     }
 
-//    private void handleViewTransactionDetails(){
-//        consoleService.showTransactionDetails(tenmoService.getTransactions().g);
-//    }
-
     private void handleRequestTransaction(String name){
         String nameSender = consoleService.requestMoney(tenmoService.getUsernames());
-        double amount = consoleService.getAmountToRequest();
-        Transaction transaction = new Transaction();
-        transaction.setMoneySent(amount);
-        transaction.setReceiverUsername(name);
-        transaction.setStatus("Pending");
-        transaction.setSenderUsername(nameSender);
-        tenmoService.requestTransaction(transaction);
+        if (!nameSender.equalsIgnoreCase("returnToMainMenu")) {
+            double amount = consoleService.getAmountToRequest();
+            Transaction transaction = new Transaction();
+            transaction.setMoneySent(amount);
+            transaction.setReceiverUsername(name);
+            transaction.setStatus("Pending");
+            transaction.setSenderUsername(nameSender);
+            tenmoService.requestTransaction(transaction);
+        } else {
+            System.out.println("Returning to main menu.");
+        }
     }
 
     private void handleViewPendingRequests(String name){
@@ -164,7 +164,6 @@ public class TenmoApp {
 
     private void handleApprove(int id){
         tenmoService.approveTransaction(id);
-        System.out.println("Transaction is now approved.");
     }
 
     private void handleReject(int id){

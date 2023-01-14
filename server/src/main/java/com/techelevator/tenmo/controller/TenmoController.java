@@ -30,11 +30,7 @@ public class TenmoController {
         int userId = userDao.findIdByUsername(principal.getName());
         int accountId = accountDao.getAccountIdByUserId(userId);
         if (checkTransfer.checkValidAccountId(principal.getName())) {
-            double balance = accountDao.getAccountBalance(accountId);
-            if(balance == -1) {
-                throw new AccountNotFoundException();
-            }
-            return balance;
+            return accountDao.getAccountBalance(accountId);
         }
         throw new AccountNotFoundException();
     }

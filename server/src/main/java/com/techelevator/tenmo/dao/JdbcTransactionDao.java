@@ -113,38 +113,22 @@ public class JdbcTransactionDao implements TransactionDao{
         return newID;
     }
 
+
     @Override
     public void transferFunds(Transaction transaction) {
-        String selectSql1 = "Select user_id " +
-                "FROM tenmo_user " +
-                "JOIN transaction ON tenmo_user.username = transaction.sender_username " +
-                "WHERE sender_username = ? " +
-                "GROUP BY user_id;";
-        int senderId;
-        try {
-            senderId = this.jdbcTemplate.queryForObject(selectSql1, Integer.class, transaction.getSenderUsername());
-        } catch (NullPointerException e){
-            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to complete transfer of funds.");
-        }
-        String selectSql2 = "Select user_id " +
-                "FROM tenmo_user " +
-                "JOIN transaction ON tenmo_user.username = transaction.receiver_username " +
-                "WHERE receiver_username = ? " +
-                "GROUP BY user_id;";
-        int receiverId;
-        try {
-            receiverId = this.jdbcTemplate.queryForObject(selectSql2, Integer.class, transaction.getReceiverUsername());
-        } catch (NullPointerException e){
-            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to complete transfer of funds.");
-        }
+        int senderId = getSenderId(transaction);
+        int receiverId = getReceiverId(transaction);
 
-        String sql1 = "UPDATE account " +
+        String sql1 = "BEGIN TRANSACTION; " +
+                "UPDATE account " +
                 "SET balance = account.balance - ? " +
                 "WHERE user_id = ?;";
         this.jdbcTemplate.update(sql1, transaction.getMoneySent(), senderId);
+
         String sql2 = "UPDATE account " +
                 "SET balance = balance + ? " +
-                "WHERE user_id = ?;";
+                "WHERE user_id = ?; " +
+                "COMMIT TRANSACTION;";
         this.jdbcTemplate.update(sql2, transaction.getMoneySent(), receiverId);
     }
 
@@ -158,4 +142,29 @@ public class JdbcTransactionDao implements TransactionDao{
         return transaction;
     }
 
+    private int getSenderId(Transaction transaction){
+        String sql = "Select user_id " +
+                "FROM tenmo_user " +
+                "JOIN transaction ON tenmo_user.username = transaction.sender_username " +
+                "WHERE sender_username = ? " +
+                "GROUP BY user_id;";
+        try {
+            return this.jdbcTemplate.queryForObject(sql, Integer.class, transaction.getSenderUsername());
+        } catch (NullPointerException e){
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to complete transfer of funds.");
+        }
+    }
+
+    private int getReceiverId(Transaction transaction) {
+        String sql = "Select user_id " +
+                "FROM tenmo_user " +
+                "JOIN transaction ON tenmo_user.username = transaction.receiver_username " +
+                "WHERE receiver_username = ? " +
+                "GROUP BY user_id;";
+        try {
+           return this.jdbcTemplate.queryForObject(sql, Integer.class, transaction.getReceiverUsername());
+        } catch (NullPointerException e){
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to complete transfer of funds.");
+        }
+    }
 }

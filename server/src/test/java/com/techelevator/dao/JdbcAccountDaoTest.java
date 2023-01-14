@@ -7,8 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import static org.junit.Assert.*;
-
 public class JdbcAccountDaoTest extends BaseDaoTests {
 
     private JdbcAccountDao sut;
@@ -95,7 +93,7 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
 
     @Test
     public void getAccountIdByUserId_returns_correct_AccountId() {
-        int expectedId = ACCOUNT_2.getAccount_id();
+        int expectedId = ACCOUNT_2.getAccountId();
 
         // Act
         int actualId = sut.getAccountIdByUserId(1002);
@@ -106,8 +104,8 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
 
 
     private void assertAccountMatch(Account expected, Account actual) {
-        Assert.assertEquals(expected.getAccount_id(), actual.getAccount_id());
-        Assert.assertEquals(expected.getUser_id(), actual.getUser_id());
+        Assert.assertEquals(expected.getAccountId(), actual.getAccountId());
+        Assert.assertEquals(expected.getUserId(), actual.getUserId());
         Assert.assertEquals(expected.getBalance(), actual.getBalance(), 0.00);
     }
 

@@ -1,37 +1,41 @@
 package com.techelevator.tenmo.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.DecimalMin;
 
 public class Account {
 
-    private int account_id;
-    private int user_id;
+    @JsonProperty("account_id")
+    private int accountId;
+    @JsonProperty("user_id")
+    private int userId;
     @DecimalMin(value = "0.00", message = "Account balance cannot be negative")
     private double balance;
 
     public Account(int accountId, int userId, double balance){
-        this.account_id = accountId;
-        this.user_id = userId;
+        this.accountId = accountId;
+        this.userId = userId;
         this.balance = balance;
     }
 
     public Account() {
     }
 
-    public int getAccount_id() {
-        return this.account_id;
+    public int getAccountId() {
+        return this.accountId;
     }
 
-    public void setAccount_id(int account_id) {
-        this.account_id = account_id;
+    public void setAccountId(int accountId) {
+        this.accountId = accountId;
     }
 
-    public int getUser_id() {
-        return this.user_id;
+    public int getUserId() {
+        return this.userId;
     }
 
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public double getBalance() {

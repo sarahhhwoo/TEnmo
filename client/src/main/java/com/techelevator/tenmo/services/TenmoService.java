@@ -78,8 +78,8 @@ public class TenmoService {
     public void approveTransaction(int id){
         try {
             restTemplate.exchange(API_BASE_URL + "transactions/" + id + "/approve", HttpMethod.PUT, makeAuthEntity(), Void.class);
+            System.out.println("Transaction is now approved.");
         } catch (ResourceAccessException | RestClientResponseException | NullPointerException e){
-            //System.out.println(e.getMessage());
             System.out.println("Error: Unable to approve transaction.");
         }
     }

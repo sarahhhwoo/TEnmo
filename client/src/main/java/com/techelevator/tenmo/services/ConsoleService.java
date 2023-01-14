@@ -136,8 +136,13 @@ public class ConsoleService {
         while (id == -2 || name == null) {
             try {
                 id = Integer.parseInt(scanner.nextLine()) - 1;
-                name = promptForUserId(users, id);
-                return name;
+                if (id > -1) {
+                    name = promptForUserId(users, id);
+                    return name;
+                }
+                if (id == -1) {
+                    return "returnToMainMenu";
+                }
             } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                 System.out.println("Unable to find user. Please try again.");
                 continue;
